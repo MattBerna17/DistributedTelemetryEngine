@@ -1,0 +1,10 @@
+AGGIORNARE MODIFICHE:
+git add .
+git commit -m "argomento commit"
+git push origin main
+
+RICEVERE MODIFICHE:
+git pull origin main
+
+CREARE NUOVO BRANCH:
+git checkout -b <nomebranch>
