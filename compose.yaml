@@ -1,4 +1,5 @@
 services:
+
   kafka:
     image: apache/kafka:4.3.1
     container_name: adaptive-kafka
@@ -24,6 +25,7 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
       KAFKA_LOG_DIRS: "/tmp/kraft-combined-logs"
+
     healthcheck:
       test:
         [
@@ -34,6 +36,7 @@ services:
       timeout: 10s
       retries: 12
       start_period: 20s
+
 
   postgres:
     image: postgres:17.10
@@ -48,6 +51,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+
     healthcheck:
       test:
         [
@@ -76,6 +80,37 @@ services:
         /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --create --if-not-exists --topic telemetry-events-dlq --partitions 1 --replication-factor 1
         echo "Topic disponibili:"
         /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --list
+
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: adaptive-api
+
+    volumes:
+      - .:/app
+
+    ports:
+      - "8000:8000"
+
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:19092
+      KAFKA_TOPIC: telemetry-events
+
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+
+    command:
+      - uvicorn
+      - main:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --reload
+
 
 volumes:
   postgres_data:

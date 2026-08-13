@@ -1,0 +1,9 @@
+{
+    "name": "Telemetry Platform",
+    "dockerComposeFile": [
+        "../compose.yaml"
+    ],
+    "service": "api",
+    "workspaceFolder": "/app",
+    "shutdownAction": "stopCompose"
+}
