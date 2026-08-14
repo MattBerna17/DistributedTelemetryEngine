@@ -4,7 +4,6 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-
 class TelemetryEvent(BaseModel):
     event_id: UUID
     source_id: str = Field(min_length=1)
