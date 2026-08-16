@@ -1,7 +1,14 @@
 from datetime import datetime
 import os
 from uuid import UUID
+
 import psycopg2
+from psycopg2.extras import register_uuid
+from dotenv import load_dotenv
+
+load_dotenv()
+
+register_uuid()
 
 
 def get_connection():
