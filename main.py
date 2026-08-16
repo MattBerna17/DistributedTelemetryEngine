@@ -1,6 +1,6 @@
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Depends, status, Request
-from common.models import TelemetryEvent, EventAcceptedResponse, AggregateResponse
+from common.models import TelemetryEvent, EventAcceptedResponse, AggregateResponse, ReconfigurationResponse, ReconfigurationRequest
 from services.kafka import KafkaProducerService
 from contextlib import asynccontextmanager
 import os
