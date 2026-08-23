@@ -3,3 +3,5 @@ uvicorn[standard]
 confluent-kafka
 pydantic
 psycopg2-binary
+pytest
+httpx

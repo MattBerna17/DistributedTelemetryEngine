@@ -1,20 +1,27 @@
+"""
+File with the API endpoints defined in it
+"""
+
 from datetime import datetime
-from fastapi import FastAPI, HTTPException, Depends, status, Request
+from fastapi import FastAPI, Depends, status, Request
+from database.repository import get_aggregates_by_source_metric_and_window
 from common.models import TelemetryEvent, EventAcceptedResponse, AggregateResponse, ReconfigurationResponse, ReconfigurationRequest
 from services.kafka import KafkaProducerService
+from services.reconfiguration import ReconfigurationPlanner
 from contextlib import asynccontextmanager
 import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Define Kafka producer for the topic
+    Initialize Kafka producer
     """
     app.state.kafka_producer = KafkaProducerService(bootstrap_servers=os.environ["KAFKA_BOOTSTRAP_SERVERS"], topic=os.environ["KAFKA_TOPIC"]) # take bootstrap server and topic name from environment
     yield
     app.state.kafka_producer.producer.flush()
 
 app = FastAPI(lifespan=lifespan)
+planner = ReconfigurationPlanner()
 
 def get_kafka_producer(request: Request):
     """
@@ -36,7 +43,7 @@ async def publish_event(event: TelemetryEvent, producer: KafkaProducerService = 
 
 @app.get(
     "/aggregates",
-    response_model=AggregateResponse
+    response_model=list[AggregateResponse]
 )
 async def get_aggregates(
     source_id: str,
@@ -44,27 +51,22 @@ async def get_aggregates(
     window_start: datetime,
     window_end: datetime
 ):
-    # implement retrival of data from the postgresql data
-    return AggregateResponse(
-        source_id=source_id,
-        metric_name=metric_name,
-        window_start=window_start,
-        count=10,
-        average=23.5,
-        minimum=20.0,
-        maximum=27.0
-    )
+    """
+    Return aggregates for a source and metric within a time window
+    """
+    aggregates = get_aggregates_by_source_metric_and_window(source_id, metric_name, window_start, window_end)
+    return aggregates
 
 @app.post(
     "/reconfiguration",
     response_model=ReconfigurationResponse
 )
 async def reconfigurate(req: ReconfigurationRequest):
-    return ReconfigurationResponse()
+    return planner.analyze(req)
 
 @app.get("/health")
 async def get_health():
-    return {"Kafka reachable": True, "PosgreSQL reachable": True}
+    return {"status": "ok"}
 
 
 @app.get("/")

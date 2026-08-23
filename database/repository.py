@@ -244,3 +244,58 @@ def get_aggregates_by_source_and_metric(
         }
         for row in rows
     ]
+
+
+def get_aggregates_by_source_metric_and_window(
+    source_id: str,
+    metric_name: str,
+    window_start: datetime,
+    window_end: datetime
+) -> list[dict]:
+    """
+    Returns aggregates for one source, one metric and a window.
+    """
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT
+                    source_id,
+                    metric_name,
+                    window_start,
+                    event_count,
+                    value_sum,
+                    minimum_value,
+                    maximum_value,
+                    value_sum / event_count AS average
+                FROM aggregates
+                WHERE source_id = %s
+                  AND metric_name = %s
+                  AND window_start >= %s 
+                  AND window_start < %s
+                ORDER BY window_start
+                """,
+                (
+                    source_id,
+                    metric_name,
+                    window_start,
+                    window_end
+                ),
+            )
+
+            rows = cur.fetchall()
+
+    return [
+        {
+            "source_id": row[0],
+            "metric_name": row[1],
+            "window_start": row[2],
+            "count": row[3],
+            "value_sum": row[4],
+            "minimum": row[5],
+            "maximum": row[6],
+            "average": row[7],
+        }
+        for row in rows
+    ]
