@@ -52,8 +52,7 @@ def process_message(message) -> bool:
         )
 
         send_to_dlq(message)
-
-    return True
+        return True
 
     # Determine the 1-minute window containing the event.
     window_start = get_window_start(
