@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-"""
-File with the API endpoints defined in it
-"""
+# File with the API endpoints defined in it
 
 from datetime import datetime
 from fastapi import FastAPI, Depends, status, Request
@@ -16,29 +13,13 @@ import os
 async def lifespan(app: FastAPI):
     """
     Initialize Kafka producer
-=======
-from datetime import datetime
-from fastapi import FastAPI, HTTPException, Depends, status, Request
-from common.models import TelemetryEvent, EventAcceptedResponse, AggregateResponse, ReconfigurationResponse, ReconfigurationRequest
-from services.kafka import KafkaProducerService
-from contextlib import asynccontextmanager
-import os
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """
-    Define Kafka producer for the topic
->>>>>>> b9876c21813baf38b27063572ed7540cba0fa9d8
     """
     app.state.kafka_producer = KafkaProducerService(bootstrap_servers=os.environ["KAFKA_BOOTSTRAP_SERVERS"], topic=os.environ["KAFKA_TOPIC"]) # take bootstrap server and topic name from environment
     yield
     app.state.kafka_producer.producer.flush()
 
 app = FastAPI(lifespan=lifespan)
-<<<<<<< HEAD
 planner = ReconfigurationPlanner()
-=======
->>>>>>> b9876c21813baf38b27063572ed7540cba0fa9d8
 
 def get_kafka_producer(request: Request):
     """
@@ -57,7 +38,6 @@ async def publish_event(event: TelemetryEvent, producer: KafkaProducerService = 
     """
     producer.publish_event(event)
     return EventAcceptedResponse(event_id=event.event_id, status="accepted")
-<<<<<<< HEAD
 
 @app.get(
     "/aggregates",
@@ -86,29 +66,6 @@ async def reconfigurate(req: ReconfigurationRequest):
 async def get_health():
     return {"status": "ok"}
 
-=======
-
-@app.get(
-    "/aggregates",
-    response_model=AggregateResponse
-)
-async def get_aggregates(
-    source_id: str,
-    metric_name: str,
-    window_start: datetime,
-    window_end: datetime
-):
-    # implement retrival of data from the postgresql data
-    return AggregateResponse(
-        source_id=source_id,
-        metric_name=metric_name,
-        window_start=window_start,
-        count=10,
-        average=23.5,
-        minimum=20.0,
-        maximum=27.0
-    )
->>>>>>> b9876c21813baf38b27063572ed7540cba0fa9d8
 
 @app.post(
     "/reconfiguration",
