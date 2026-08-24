@@ -1,0 +1,8 @@
+{
+  "event_id": "...",
+  "source_id": "sensor-17",
+  "event_time": "...",
+  "metric_name": "temperature",
+  "value": 41.7,
+  "schema_version": 1
+}
