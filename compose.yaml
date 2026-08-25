@@ -101,6 +101,15 @@ services:
 
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-adaptive_metrics}
+      POSTGRES_USER: ${POSTGRES_USER:-adaptive}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-adaptive_local_password}
+
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
 
     command:
       - uvicorn
@@ -110,7 +119,74 @@ services:
       - --port
       - "8000"
       - --reload
+    
+  processor-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
 
+    container_name: adaptive-processor-1
+
+    volumes:
+      - .:/app
+
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:19092
+      KAFKA_TOPIC: telemetry-events
+      KAFKA_CONSUMER_GROUP: adaptive-processors
+      KAFKA_AUTO_OFFSET_RESET: earliest
+      KAFKA_DLQ_TOPIC: telemetry-events-dlq
+
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-adaptive_metrics}
+      POSTGRES_USER: ${POSTGRES_USER:-adaptive}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-adaptive_local_password}
+
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+
+    command:
+      - python
+      - -m
+      - processor.consumer
+
+  processor-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: adaptive-processor-2
+
+    volumes:
+      - .:/app
+
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:19092
+      KAFKA_TOPIC: telemetry-events
+      KAFKA_CONSUMER_GROUP: adaptive-processors
+      KAFKA_AUTO_OFFSET_RESET: earliest
+      KAFKA_DLQ_TOPIC: telemetry-events-dlq
+
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-adaptive_metrics}
+      POSTGRES_USER: ${POSTGRES_USER:-adaptive}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-adaptive_local_password}
+
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+
+    command:
+      - python
+      - -m
+      - processor.consumer
 
 volumes:
   postgres_data:
