@@ -67,18 +67,6 @@ async def get_health():
     return {"status": "ok"}
 
 
-@app.post(
-    "/reconfiguration",
-    response_model=ReconfigurationResponse
-)
-async def reconfigurate(req: ReconfigurationRequest):
-    return ReconfigurationResponse()
-
-@app.get("/health")
-async def get_health():
-    return {"Kafka reachable": True, "PosgreSQL reachable": True}
-
-
 @app.get("/")
 async def root():
     print("hello")
