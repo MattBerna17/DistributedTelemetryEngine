@@ -11,6 +11,10 @@ class KafkaProducerService:
         self.topic = topic # producer only produces for one topic
         self.producer = Producer({"bootstrap.servers": bootstrap_servers})
 
-    def publish_event(self, event: TelemetryEvent) -> None:
-        payload = json.dumps(event.model_dump(mode="json"))
-        self.producer.produce(topic=self.topic, key=str(event.source_id), value=payload)
+    def publish_event(self, event: TelemetryEvent) -> bool:
+        try:
+            payload = json.dumps(event.model_dump(mode="json"))
+            self.producer.produce(topic=self.topic, key=str(event.source_id), value=payload)
+            return True
+        except:
+            return False

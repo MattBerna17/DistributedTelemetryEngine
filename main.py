@@ -2,8 +2,10 @@
 
 from datetime import datetime
 from fastapi import FastAPI, Depends, status, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from database.repository import get_aggregates_by_source_metric_and_window
-from common.models import TelemetryEvent, EventAcceptedResponse, AggregateResponse, ReconfigurationResponse, ReconfigurationRequest
+from common.models import TelemetryEvent, EventResponse, AggregateResponse, ReconfigurationResponse, ReconfigurationRequest
 from services.kafka import KafkaProducerService
 from services.reconfiguration import ReconfigurationPlanner
 from contextlib import asynccontextmanager
@@ -27,17 +29,35 @@ def get_kafka_producer(request: Request):
     """
     return request.app.state.kafka_producer
 
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request,
+    exc: RequestValidationError
+):
+    """
+    Function to handle the validation error when inserting new non-valid jsons
+    """
+    return JSONResponse(
+        status_code=422,
+        content={
+            "event_id": None,
+            "status": "rejected"
+        }
+    )
+
 @app.post(
     "/events",
-    response_model=EventAcceptedResponse,
-    status_code=status.HTTP_202_ACCEPTED
+    response_model=EventResponse,
 )
 async def publish_event(event: TelemetryEvent, producer: KafkaProducerService = Depends(get_kafka_producer)):
     """
     Function to publish event to the Kafka queue
     """
-    producer.publish_event(event)
-    return EventAcceptedResponse(event_id=event.event_id, status="accepted")
+    accepted = producer.publish_event(event)
+    if accepted:
+        return EventResponse(event_id=event.event_id, status="accepted")
+    else:
+        return EventResponse(event_id=event.event_id, status="rejected")
 
 @app.get(
     "/aggregates",

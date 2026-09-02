@@ -2,9 +2,10 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 class TelemetryEvent(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     event_id: UUID
     source_id: str = Field(min_length=1)
     event_time: datetime
@@ -13,10 +14,10 @@ class TelemetryEvent(BaseModel):
     schema_version: Literal[1]
 
 
-class EventAcceptedResponse(BaseModel):
-    event_id: UUID
-    status: Literal["accepted"]
 
+class EventResponse(BaseModel):
+    event_id: UUID
+    status: Literal["accepted", "rejected"]
 
 class ErrorResponse(BaseModel):
     error_code: str
