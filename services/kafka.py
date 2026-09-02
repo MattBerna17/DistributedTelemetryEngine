@@ -16,5 +16,5 @@ class KafkaProducerService:
             payload = json.dumps(event.model_dump(mode="json"))
             self.producer.produce(topic=self.topic, key=str(event.source_id), value=payload)
             return True
-        except:
+        except Exception:
             return False
