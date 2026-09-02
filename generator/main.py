@@ -7,7 +7,7 @@ import random
 from dataclasses import dataclass, field
 from time import perf_counter
 
-from generator.config import (
+from config import (
     DEFAULT_DISTRIBUTION,
     DEFAULT_DUPLICATE_RATE,
     DEFAULT_DURATION,
@@ -16,13 +16,13 @@ from generator.config import (
     METRICS,
     SUPPORTED_DISTRIBUTIONS,
 )
-from generator.event_factory import (
+from event_factory import (
     build_source_ids,
     choose_metric,
     choose_source,
     create_event,
 )
-from generator.sender import (
+from sender import (
     SendResult,
     create_http_client,
     send_event,

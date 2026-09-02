@@ -2,7 +2,7 @@ import random
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from generator.config import (
+from config import (
     HOT_SOURCE_PROBABILITY,
     METRIC_RANGES,
     SCHEMA_VERSION,
