@@ -5,7 +5,7 @@ from time import perf_counter
 
 import httpx
 
-from config import (
+from generator.config import (
     API_URL,
     HTTP_TIMEOUT,
 )

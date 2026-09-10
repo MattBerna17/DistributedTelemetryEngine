@@ -62,3 +62,9 @@ class ReconfigurationResponse(BaseModel):
     actions: list[
         ScaleWorkersAction | InvestigateHotPartitionAction
     ]
+
+class SystemMetricsSnapshot(BaseModel):
+    arrival_rate: float = Field(ge=0)
+    consumer_lag: int = Field(ge=0)
+    partition_rates: dict[int, float]
+    current_workers: int = Field(ge=0)
