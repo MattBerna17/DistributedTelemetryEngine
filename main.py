@@ -1,13 +1,38 @@
 # File with the API endpoints defined in it
 
 from datetime import datetime
-from fastapi import FastAPI, Depends, status, Request
+from fastapi import (
+    FastAPI,
+    Depends,
+    status,
+    Request,
+    HTTPException,
+)
+
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from database.repository import get_aggregates_by_source_metric_and_window
-from common.models import TelemetryEvent, EventResponse, AggregateResponse, ReconfigurationResponse, ReconfigurationRequest
+
+from database.repository import (
+    get_aggregates_by_source_metric_and_window
+)
+
+from common.models import (
+    TelemetryEvent,
+    EventResponse,
+    AggregateResponse,
+    ReconfigurationResponse,
+    ReconfigurationRequest,
+    SystemMetricsSnapshot,
+)
+
 from services.kafka import KafkaProducerService
 from services.reconfiguration import ReconfigurationPlanner
+from services.reconfiguration_service import (
+    build_reconfiguration_request,
+)
+
+from metrics.collector import MetricsCollector
+
 from contextlib import asynccontextmanager
 import os
 
@@ -22,6 +47,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 planner = ReconfigurationPlanner()
+metrics_collector = MetricsCollector()
 
 def get_kafka_producer(request: Request):
     """
@@ -91,3 +117,50 @@ async def get_health():
 async def root():
     print("hello")
     return {"status": "ok"}
+
+# Exposes the current system metrics collected from Kafka.
+@app.get(
+    "/metrics",
+    response_model=SystemMetricsSnapshot,
+)
+async def get_system_metrics():
+    """
+    Collect and return the current system metrics.
+    """
+
+    try:
+        return await metrics_collector.collect()
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Unable to collect system metrics: {exc}",
+        )
+
+# Endpoint to connect Collector and Planner.
+@app.get(
+    "/reconfiguration/auto",
+    response_model=ReconfigurationResponse,
+)
+async def automatic_reconfiguration():
+    """
+    Collect system metrics and automatically generate
+    a reconfiguration recommendation.
+    """
+
+    try:
+        metrics = await metrics_collector.collect()
+
+        request = build_reconfiguration_request(
+            metrics
+        )
+
+        return planner.analyze(
+            request
+        )
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Unable to analyze system metrics: {exc}",
+        )
