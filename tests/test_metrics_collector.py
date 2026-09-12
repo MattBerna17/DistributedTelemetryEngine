@@ -4,23 +4,19 @@ from metrics.collector import MetricsCollector
 
 
 def test_calculate_partition_rates():
-    start_offsets = {
-        0: 100,
-        1: 200,
-        2: 300,
-        3: 400,
-    }
-
-    end_offsets = {
-        0: 150,
-        1: 300,
-        2: 500,
-        3: 450,
-    }
-
     rates = MetricsCollector._calculate_partition_rates(
-        start_offsets=start_offsets,
-        end_offsets=end_offsets,
+        start_offsets={
+            0: 100,
+            1: 200,
+            2: 300,
+            3: 400,
+        },
+        end_offsets={
+            0: 150,
+            1: 300,
+            2: 500,
+            3: 450,
+        },
         interval=5.0,
     )
 
@@ -58,23 +54,17 @@ def test_calculate_consumer_lag():
     assert lag == 500
 
 
-def test_consumer_lag_without_committed_offset():
+def test_consumer_lag_uses_earliest_when_no_commit_exists():
     lag = MetricsCollector._calculate_consumer_lag(
         partition_ids=[0],
-        latest_offsets={
-            0: 1000,
-        },
-        earliest_offsets={
-            0: 300,
-        },
+        latest_offsets={0: 1000},
+        earliest_offsets={0: 300},
         committed_offsets={},
     )
 
     assert lag == 700
 
 
-def test_invalid_sample_interval():
+def test_invalid_sample_interval_is_rejected():
     with pytest.raises(ValueError):
-        MetricsCollector(
-            sample_interval=0,
-        )
+        MetricsCollector(sample_interval=0)

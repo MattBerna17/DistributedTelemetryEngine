@@ -1,18 +1,18 @@
 from datetime import datetime
-from uuid import UUID
 
+import pytest
 from pydantic import ValidationError
 
 from common.models import (
-    TelemetryEvent,
+    InvestigateHotPartitionAction,
     ReconfigurationRequest,
     ReconfigurationResponse,
     ScaleWorkersAction,
-    InvestigateHotPartitionAction,
+    TelemetryEvent,
 )
 
 
-def test_valid_event():
+def test_valid_telemetry_event():
     event = TelemetryEvent(
         event_id="8f55e942-78c3-49ee-8f55-c72bf728a214",
         source_id="sensor-17",
@@ -27,11 +27,9 @@ def test_valid_event():
     assert event.value == 41.7
     assert isinstance(event.event_time, datetime)
 
-    print("PASS - valid event")
 
-
-def test_invalid_uuid():
-    try:
+def test_invalid_uuid_is_rejected():
+    with pytest.raises(ValidationError):
         TelemetryEvent(
             event_id="invalid-uuid",
             source_id="sensor-17",
@@ -40,15 +38,10 @@ def test_invalid_uuid():
             value=41.7,
             schema_version=1,
         )
-    except ValidationError:
-        print("PASS - invalid UUID rejected")
-        return
-
-    raise AssertionError("Invalid UUID was accepted")
 
 
-def test_invalid_schema_version():
-    try:
+def test_invalid_schema_version_is_rejected():
+    with pytest.raises(ValidationError):
         TelemetryEvent(
             event_id="8f55e942-78c3-49ee-8f55-c72bf728a214",
             source_id="sensor-17",
@@ -57,15 +50,10 @@ def test_invalid_schema_version():
             value=41.7,
             schema_version=2,
         )
-    except ValidationError:
-        print("PASS - unsupported schema version rejected")
-        return
-
-    raise AssertionError("Unsupported schema version was accepted")
 
 
-def test_invalid_reconfiguration_request():
-    try:
+def test_invalid_reconfiguration_request_is_rejected():
+    with pytest.raises(ValidationError):
         ReconfigurationRequest(
             arrival_rate=420,
             worker_capacity=250,
@@ -79,14 +67,9 @@ def test_invalid_reconfiguration_request():
                 3: 45,
             },
         )
-    except ValidationError:
-        print("PASS - invalid reconfiguration request rejected")
-        return
-
-    raise AssertionError("Invalid reconfiguration request was accepted")
 
 
-def test_reconfiguration_response():
+def test_reconfiguration_response_accepts_actions():
     response = ReconfigurationResponse(
         reason=[
             "target_capacity_exceeded",
@@ -95,8 +78,8 @@ def test_reconfiguration_response():
         current_workers=2,
         target_workers=3,
         actions=[
-            ScaleWorkersAction(
-                **{
+            ScaleWorkersAction.model_validate(
+                {
                     "type": "SCALE_WORKERS",
                     "from": 2,
                     "to": 3,
@@ -112,15 +95,3 @@ def test_reconfiguration_response():
     assert response.current_workers == 2
     assert response.target_workers == 3
     assert len(response.actions) == 2
-
-    print("PASS - reconfiguration response")
-
-
-if __name__ == "__main__":
-    test_valid_event()
-    test_invalid_uuid()
-    test_invalid_schema_version()
-    test_invalid_reconfiguration_request()
-    test_reconfiguration_response()
-
-    print("\nAll tests passed.")

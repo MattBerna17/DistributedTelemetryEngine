@@ -1,9 +1,9 @@
 import pytest
 
 from common.models import (
+    InvestigateHotPartitionAction,
     ReconfigurationRequest,
     ScaleWorkersAction,
-    InvestigateHotPartitionAction,
 )
 from services.reconfiguration import ReconfigurationPlanner
 
@@ -20,13 +20,9 @@ def test_no_reconfiguration_needed(planner):
         target_utilization=0.8,
         current_workers=2,
         consumer_lag=0,
-        partition_rates={
-            0: 120,
-            1: 130,
-            2: 125,
-            3: 125,
-        },
+        partition_rates={0: 120, 1: 130, 2: 125, 3: 125},
     )
+
     response = planner.analyze(request)
 
     assert response.current_workers == 2
@@ -41,13 +37,9 @@ def test_scale_up_workers(planner):
         target_utilization=0.8,
         current_workers=2,
         consumer_lag=0,
-        partition_rates={
-            0: 500,
-            1: 500,
-            2: 500,
-            3: 500,
-        },
+        partition_rates={0: 500, 1: 500, 2: 500, 3: 500},
     )
+
     response = planner.analyze(request)
 
     assert response.current_workers == 2
@@ -68,13 +60,9 @@ def test_scale_up_with_consumer_lag(planner):
         target_utilization=0.8,
         current_workers=2,
         consumer_lag=500,
-        partition_rates={
-            0: 500,
-            1: 500,
-            2: 500,
-            3: 500,
-        },
+        partition_rates={0: 500, 1: 500, 2: 500, 3: 500},
     )
+
     response = planner.analyze(request)
 
     assert response.target_workers == 3
@@ -89,13 +77,9 @@ def test_hot_partition(planner):
         target_utilization=0.8,
         current_workers=2,
         consumer_lag=0,
-        partition_rates={
-            0: 100,
-            1: 100,
-            2: 600,
-            3: 100,
-        },
+        partition_rates={0: 100, 1: 100, 2: 600, 3: 100},
     )
+
     response = planner.analyze(request)
 
     assert response.target_workers == 2
@@ -114,17 +98,20 @@ def test_scale_up_and_hot_partition(planner):
         target_utilization=0.8,
         current_workers=2,
         consumer_lag=500,
-        partition_rates={
-            0: 100,
-            1: 100,
-            2: 600,
-            3: 100,
-        },
+        partition_rates={0: 100, 1: 100, 2: 600, 3: 100},
     )
+
     response = planner.analyze(request)
 
     assert response.current_workers == 2
     assert response.target_workers == 3
     assert len(response.actions) == 2
-    assert any(isinstance(action, ScaleWorkersAction) for action in response.actions)
-    assert any(isinstance(action, InvestigateHotPartitionAction) and action.partition == 2 for action in response.actions)
+    assert any(
+        isinstance(action, ScaleWorkersAction)
+        for action in response.actions
+    )
+    assert any(
+        isinstance(action, InvestigateHotPartitionAction)
+        and action.partition == 2
+        for action in response.actions
+    )
