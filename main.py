@@ -34,6 +34,7 @@ from services.reconfiguration_service import (
 from metrics.collector import MetricsCollector
 
 from contextlib import asynccontextmanager
+from starlette.concurrency import run_in_threadpool
 import os
 
 @asynccontextmanager
@@ -96,9 +97,17 @@ async def get_aggregates(
     window_end: datetime
 ):
     """
-    Return aggregates for a source and metric within a time window
+    Return aggregates for a source and metric within a time window.
     """
-    aggregates = get_aggregates_by_source_metric_and_window(source_id, metric_name, window_start, window_end)
+
+    aggregates = await run_in_threadpool(
+        get_aggregates_by_source_metric_and_window,
+        source_id,
+        metric_name,
+        window_start,
+        window_end,
+    )
+
     return aggregates
 
 @app.post(

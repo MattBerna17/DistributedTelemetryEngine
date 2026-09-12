@@ -39,14 +39,21 @@ class ReconfigurationRequest(BaseModel):
     arrival_rate: float = Field(ge=0)
     worker_capacity: float = Field(gt=0)
     target_utilization: float = Field(gt=0, le=1)
-    current_workers: int = Field(gt=0)
+
+    # Can be 0 if all Processor instances are temporarily down.
+    current_workers: int = Field(ge=0)
+
     consumer_lag: int = Field(ge=0)
     partition_rates: dict[int, float]
 
 
 class ScaleWorkersAction(BaseModel):
     type: Literal["SCALE_WORKERS"]
-    from_workers: int = Field(gt=0, alias="from")
+
+    # Scaling may start from 0 active workers.
+    from_workers: int = Field(ge=0, alias="from")
+
+    # A scale-up target must contain at least one worker.
     to_workers: int = Field(gt=0, alias="to")
 
 
@@ -63,8 +70,15 @@ class ReconfigurationResponse(BaseModel):
         ScaleWorkersAction | InvestigateHotPartitionAction
     ]
 
+
 class SystemMetricsSnapshot(BaseModel):
+    """
+    Runtime metrics collected from the distributed system.
+    """
+
     arrival_rate: float = Field(ge=0)
     consumer_lag: int = Field(ge=0)
     partition_rates: dict[int, float]
+
+    # There may temporarily be no active Processor.
     current_workers: int = Field(ge=0)

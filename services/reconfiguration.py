@@ -17,9 +17,38 @@ class ReconfigurationPlanner:
         reasons = []
         actions = []
 
-        effective_capacity = request.worker_capacity * request.target_utilization
-        required_workers = math.ceil(request.arrival_rate / effective_capacity)
-        target_workers = max(request.current_workers, required_workers)
+        effective_capacity = (
+            request.worker_capacity
+            * request.target_utilization
+        )
+
+        required_workers = math.ceil(
+            request.arrival_rate / effective_capacity
+        )
+
+        partition_count = len(request.partition_rates)
+
+        if partition_count > 0:
+            useful_required_workers = min(
+                required_workers,
+                partition_count,
+            )
+        else:
+            useful_required_workers = required_workers
+
+        target_workers = max(
+            request.current_workers,
+            useful_required_workers,
+        )
+
+        if (
+            partition_count > 0
+            and required_workers > partition_count
+        ):
+            reasons.append(
+                "The required processing capacity exceeds the "
+                "parallelism available with the current Kafka partitions"
+            )
 
         # in case more workers are needed than the ones currently assigned...
         if target_workers > request.current_workers:

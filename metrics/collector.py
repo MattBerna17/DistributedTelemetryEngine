@@ -248,22 +248,29 @@ class MetricsCollector:
         return total_lag
 
     async def collect(
-        self,
-    ) -> SystemMetricsSnapshot:
+            self,
+        ) -> SystemMetricsSnapshot:
         """
         Collects a complete snapshot of the system metrics.
         """
 
-        partition_ids = self._get_partition_ids()
+        partition_ids = await asyncio.to_thread(
+            self._get_partition_ids
+        )
 
-        # First sample.
-        start_offsets = self._get_latest_offsets(partition_ids)
+        start_offsets = await asyncio.to_thread(
+            self._get_latest_offsets,
+            partition_ids,
+        )
 
-        # Observe Kafka traffic for the configured interval.
-        await asyncio.sleep(self.sample_interval)
+        await asyncio.sleep(
+            self.sample_interval
+        )
 
-        # Second sample.
-        end_offsets = self._get_latest_offsets(partition_ids)
+        end_offsets = await asyncio.to_thread(
+            self._get_latest_offsets,
+            partition_ids,
+        )
 
         partition_rates = self._calculate_partition_rates(
             start_offsets,
@@ -271,11 +278,18 @@ class MetricsCollector:
             self.sample_interval,
         )
 
-        arrival_rate = sum(partition_rates.values())
+        arrival_rate = sum(
+            partition_rates.values()
+        )
 
-        earliest_offsets = self._get_earliest_offsets(partition_ids)
+        earliest_offsets = await asyncio.to_thread(
+            self._get_earliest_offsets,
+            partition_ids,
+        )
 
-        committed_offsets = self._get_committed_offsets()
+        committed_offsets = await asyncio.to_thread(
+            self._get_committed_offsets
+        )
 
         consumer_lag = self._calculate_consumer_lag(
             partition_ids,
@@ -284,7 +298,9 @@ class MetricsCollector:
             committed_offsets,
         )
 
-        current_workers = self._get_current_workers()
+        current_workers = await asyncio.to_thread(
+            self._get_current_workers
+        )
 
         return SystemMetricsSnapshot(
             arrival_rate=arrival_rate,

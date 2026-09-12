@@ -35,7 +35,7 @@ HOT_SOURCE_PROBABILITY = 0.60
 
 API_URL = os.getenv(
     "GENERATOR_API_URL",
-    "http://localhost:8000/",
+    "http://localhost:8000/events",
 )
 
 HTTP_TIMEOUT = 5.0

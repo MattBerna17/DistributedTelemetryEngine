@@ -89,6 +89,8 @@ services:
 
     container_name: adaptive-api
 
+    restart: unless-stopped
+
     volumes:
       - .:/app
 
@@ -127,6 +129,8 @@ services:
 
     container_name: adaptive-processor-1
 
+    restart: unless-stopped
+
     volumes:
       - .:/app
 
@@ -160,6 +164,8 @@ services:
       dockerfile: Dockerfile
 
     container_name: adaptive-processor-2
+
+    restart: unless-stopped
 
     volumes:
       - .:/app
