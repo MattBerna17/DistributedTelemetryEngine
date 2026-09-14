@@ -52,7 +52,7 @@ def test_invalid_event_is_forwarded_to_dlq():
 
         while time.monotonic() < deadline:
             message = consumer.poll(1.0)
-
+            
             if message is None:
                 continue
             if message.error():
