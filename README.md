@@ -165,24 +165,6 @@ It can currently recommend:
 
 Worker recommendations are limited by the number of available Kafka partitions, since consumers in the same group cannot provide useful parallelism beyond the partition count.
 
-The automatic endpoint combines runtime measurements with the configured planner parameters:
-
-```text
-Kafka / Consumer Group
-        ↓
-Metrics Collector
-        ↓
-SystemMetricsSnapshot
-        ↓
-ReconfigurationRequest
-        ↓
-Reconfiguration Planner
-        ↓
-ReconfigurationResponse
-```
-
-The returned response is only a recommendation: no infrastructure changes are automatically executed.
-
 ## Testing
 
 The project uses `pytest` for unit and integration testing.
@@ -214,42 +196,6 @@ docker compose exec api python -m pytest -m "not integration" -v
 ```
 
 Integration tests require the corresponding Kafka, PostgreSQL and Processor services to be running.
-
-### End-to-end validation
-
-A final end-to-end test was performed against the real system without replacing the main infrastructure components with mocks.
-
-The complete validated path was:
-
-```text
-HTTP API -> Kafka -> Processor -> PostgreSQL -> Aggregates API
-```
-
-Multiple events belonging to the same aggregation window were submitted through the HTTP API and the resulting aggregate was retrieved through the API after processing.
-
-The same `event_id` was also submitted more than once, verifying that duplicate delivery produces only one logical effect in PostgreSQL.
-
-This final validation therefore checks the interaction between the ingestion API, Kafka, Processor layer, PostgreSQL aggregation and the idempotency mechanism as a single distributed pipeline.
-
-### Processor failure / Kafka rebalance validation
-
-The same pipeline was also validated with one Processor unavailable.
-
-One Processor was stopped with:
-
-```bash
-docker compose stop processor-1
-```
-
-After Kafka completed the consumer-group rebalance, the remaining Processor continued consuming the available topic partitions and the end-to-end pipeline remained operational.
-
-The second Processor can then be restored with:
-
-```bash
-docker compose start processor-1
-```
-
-This validates the ability of the Processor layer to continue operating after the loss of one consumer instance, provided that another member of the consumer group remains available.
 
 ## Configuration
 
