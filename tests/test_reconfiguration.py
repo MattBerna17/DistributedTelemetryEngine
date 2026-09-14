@@ -115,3 +115,33 @@ def test_scale_up_and_hot_partition(planner):
         and action.partition == 2
         for action in response.actions
     )
+
+def test_capacity_exceeds_partition_limit(planner):
+    request = ReconfigurationRequest(
+        arrival_rate=1000,
+        worker_capacity=100,
+        target_utilization=0.8,
+        current_workers=4,
+        consumer_lag=100,
+        partition_rates={
+            0: 250,
+            1: 250,
+            2: 250,
+            3: 250,
+        },
+    )
+
+    response = planner.analyze(request)
+
+    assert response.target_workers == 4
+    assert response.actions == []
+
+    assert any(
+        "exceeds the parallelism" in reason
+        for reason in response.reason
+    )
+
+    assert not any(
+        "capacity is sufficient" in reason
+        for reason in response.reason
+    )

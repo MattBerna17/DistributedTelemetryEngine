@@ -12,11 +12,8 @@ def build_reconfiguration_request(
     metrics: SystemMetricsSnapshot,
 ) -> ReconfigurationRequest:
     """
-    Builds a ReconfigurationRequest using the metrics
-    collected from the running system and the configured
-    Planner parameters.
+    Builds a ReconfigurationRequest using the metrics collected from the running system and the configured Planner parameters
     """
-
     return ReconfigurationRequest(
         arrival_rate=metrics.arrival_rate,
         worker_capacity=WORKER_CAPACITY,

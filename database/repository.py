@@ -1,7 +1,6 @@
 from datetime import datetime
 import os
 from uuid import UUID
-
 import psycopg2
 from psycopg2.extras import register_uuid
 from dotenv import load_dotenv
@@ -14,7 +13,7 @@ register_uuid()
 
 def get_connection():
     """
-    Creates a connection to PostgreSQL.
+    Creates a connection to PostgreSQL
     """
     return psycopg2.connect(
         host=os.getenv("POSTGRES_HOST", "postgres"),
@@ -27,23 +26,17 @@ def get_connection():
 
 def check_database_connection() -> bool:
     """
-    Executes a simple SELECT 1 query
-    to verify PostgreSQL availability.
+    Executes a simple SELECT 1 query to verify PostgreSQL availability
     """
     conn = None
-
     try:
         conn = get_connection()
-
         with conn.cursor() as cur:
             cur.execute("SELECT 1")
             result = cur.fetchone()
-
         return result == (1,)
-
     except psycopg2.Error:
         return False
-
     finally:
         if conn is not None:
             conn.close()
@@ -59,22 +52,18 @@ def process_event(
     kafka_offset: int,
 ) -> bool:
     """
-    Processes one event transactionally.
+    Processes one event transactionally
 
     Returns:
-        True  -> new event, aggregate updated
+        True -> new event, aggregate updated
         False -> duplicate event, aggregate unchanged
     """
     conn = get_connection()
-
     try:
-        # The connection context manager handles
-        # commit on success and rollback on error.
+        # the connection context manager handles commit on success and rollback on error
         with conn:
             with conn.cursor() as cur:
-
-                # Try to register the event as processed.
-                # If event_id already exists, the event is a duplicate.
+                # try to register the event as processed. if event_id already exists, the event is a duplicate
                 cur.execute(
                     """
                     INSERT INTO processed_events (
@@ -95,13 +84,11 @@ def process_event(
                 )
 
                 inserted_event = cur.fetchone()
-
-                # Duplicate event: do not update the aggregate.
+                # duplicate event: do not update the aggregate
                 if inserted_event is None:
                     return False
 
-                # New event: update the corresponding aggregate
-                # in the same database transaction.
+                # new event: update the corresponding aggregate in the same database transaction
                 _upsert_aggregate(
                     cur,
                     source_id,
@@ -109,9 +96,7 @@ def process_event(
                     window_start,
                     value,
                 )
-
         return True
-
     finally:
         conn.close()
 
@@ -124,7 +109,7 @@ def _upsert_aggregate(
     value: float,
 ) -> None:
     """
-    Inserts a new aggregate or updates an existing one.
+    Inserts a new aggregate or updates an existing one
     """
     cursor.execute(
         """
@@ -171,10 +156,9 @@ def get_aggregates_by_source(
     source_id: str,
 ) -> list[dict]:
     """
-    Returns all aggregates for a source.
+    Returns all aggregates for a source
     """
     conn = get_connection()
-
     try:
         with conn:
             with conn.cursor() as cur:
@@ -197,10 +181,8 @@ def get_aggregates_by_source(
                 )
 
                 rows = cur.fetchall()
-
     finally:
         conn.close()
-
     return [
         {
             "source_id": row[0],
@@ -220,10 +202,9 @@ def get_aggregates_by_source_and_metric(
     metric_name: str,
 ) -> list[dict]:
     """
-    Returns aggregates for one source and one metric.
+    Returns aggregates for one source and one metric
     """
     conn = get_connection()
-
     try:
         with conn:
             with conn.cursor() as cur:
@@ -250,10 +231,8 @@ def get_aggregates_by_source_and_metric(
                 )
 
                 rows = cur.fetchall()
-
     finally:
         conn.close()
-
     return [
         {
             "source_id": row[0],
@@ -275,11 +254,9 @@ def get_aggregates_by_source_metric_and_window(
     window_end: datetime,
 ) -> list[dict]:
     """
-    Returns aggregates for one source and one metric
-    within the specified time window.
+    Returns aggregates for one source and one metric within the specified time window
     """
     conn = get_connection()
-
     try:
         with conn:
             with conn.cursor() as cur:
@@ -308,12 +285,9 @@ def get_aggregates_by_source_metric_and_window(
                         window_end,
                     ),
                 )
-
                 rows = cur.fetchall()
-
     finally:
         conn.close()
-
     return [
         {
             "source_id": row[0],

@@ -82,8 +82,8 @@ class ReconfigurationPlanner:
                     )
                     reasons.append(f"Partition {partition} has an unusually high arrival rate")
 
-        # in case no action is needed (current capacity is ok and no hot partition present)
-        if not actions:
+        # in case no action is needed and no problems occurred (current capacity is ok and no hot partition present)
+        if not actions and not reasons:
             reasons.append("The current worker capacity is sufficient and no hot partition was detected")
 
         return ReconfigurationResponse(

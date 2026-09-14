@@ -210,8 +210,8 @@ The main settings are provided through environment variables and Docker Compose 
 | `POSTGRES_HOST` | PostgreSQL host | `postgres` inside Docker |
 | `POSTGRES_PORT` | PostgreSQL port | `5432` |
 | `POSTGRES_DB` | Database name | `adaptive_metrics` |
-| `POSTGRES_USER` | Database user | `adaptive` |
-| `POSTGRES_PASSWORD` | Database password | `adaptive_local_password` |
+| `POSTGRES_USER` | Database user | `admin` |
+| `POSTGRES_PASSWORD` | Database password | `admin` |
 | `METRICS_SAMPLE_INTERVAL` | Metrics observation window | `5.0` seconds |
 | `KAFKA_REQUEST_TIMEOUT` | Kafka metrics request timeout | `5.0` seconds |
 | `WORKER_CAPACITY` | Planner capacity per worker | `100.0` events/s |
@@ -230,7 +230,7 @@ Kafka is also exposed on `localhost:9092` for clients running directly on the ho
 ├── metrics/                # Runtime metrics collector
 ├── processor/              # Kafka consumer, windowing and DLQ logic
 ├── services/               # Kafka producer and reconfiguration services
-├── tests/                  # Unit and integration tests
+├── tests/                  # Unit, integration and end-to-end tests
 ├── main.py                 # FastAPI application
 ├── compose.yaml            # Complete local distributed environment
 ├── Dockerfile

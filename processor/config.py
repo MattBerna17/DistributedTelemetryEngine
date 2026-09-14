@@ -1,8 +1,7 @@
 import os
-
 from dotenv import load_dotenv
 
-# This module centralizes the Kafka configuration parameters used by the Processor.
+# This module centralizes the Kafka configuration parameters used by the Processor
 
 load_dotenv()
 
@@ -11,12 +10,10 @@ KAFKA_BOOTSTRAP_SERVERS = os.getenv(
     "KAFKA_BOOTSTRAP_SERVERS",
     "kafka:19092",
 )
-
 KAFKA_TOPIC = os.getenv(
     "KAFKA_TOPIC",
     "telemetry-events",
 )
-
 KAFKA_CONSUMER_GROUP = os.getenv(
     "KAFKA_CONSUMER_GROUP",
     "adaptive-processors",

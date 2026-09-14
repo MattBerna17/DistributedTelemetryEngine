@@ -8,7 +8,7 @@ from fastapi import (
     Request,
     HTTPException,
 )
-
+from fastapi.exception_handlers import request_validation_exception_handler as default_validation_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
@@ -59,17 +59,23 @@ def get_kafka_producer(request: Request):
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(
     request: Request,
-    exc: RequestValidationError
+    exc: RequestValidationError,
 ):
     """
-    Function to handle the validation error when inserting new non-valid jsons
+    Default exception handler function
     """
-    return JSONResponse(
-        status_code=422,
-        content={
-            "event_id": None,
-            "status": "rejected"
-        }
+    if request.url.path == "/events":
+        return JSONResponse(
+            status_code=422,
+            content={
+                "event_id": None,
+                "status": "rejected",
+            },
+        )
+
+    return await default_validation_handler(
+        request,
+        exc,
     )
 
 @app.post(
