@@ -130,7 +130,6 @@ async def get_health():
 
 @app.get("/")
 async def root():
-    print("hello")
     return {"status": "ok"}
 
 # Exposes the current system metrics collected from Kafka.

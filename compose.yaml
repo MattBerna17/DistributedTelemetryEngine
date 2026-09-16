@@ -144,8 +144,8 @@ services:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_DB: ${POSTGRES_DB:-adaptive_metrics}
-      POSTGRES_USER: ${POSTGRES_USER:-adaptive}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-adaptive_local_password}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
 
     depends_on:
       kafka-init:
@@ -180,8 +180,8 @@ services:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_DB: ${POSTGRES_DB:-adaptive_metrics}
-      POSTGRES_USER: ${POSTGRES_USER:-adaptive}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-adaptive_local_password}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin}
 
     depends_on:
       kafka-init:
